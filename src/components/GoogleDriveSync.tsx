@@ -46,7 +46,7 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
     try {
       setIsLoading(true);
       const gapi = await import('gapi-script').then(pkg => pkg.gapi);
-      
+
       // Google APIが初期化されているかチェック
       if (!gapi.auth2) {
         await gapi.load('client:auth2', async () => {
@@ -58,17 +58,17 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
           });
         });
       }
-      
+
       const authInstance = gapi.auth2.getAuthInstance();
       if (authInstance) {
         await authInstance.signIn();
         setIsConnected(true);
       } else {
-        throw new Error('Google認証が初期化されていません');
+        throw new Error('Google Drive連携の準備が完了していません');
       }
     } catch (error) {
       console.error('ログインエラー:', error);
-      alert('Googleログインに失敗しました。初期化ボタンを先に押してください。');
+      alert('Googleログインに失敗しました。連携準備ボタンを先に押してください。');
     } finally {
       setIsLoading(false);
     }
@@ -234,7 +234,7 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
               disabled={isLoading}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
             >
-              {isLoading ? '初期化中...' : 'Google Drive初期化'}
+              {isLoading ? '準備中...' : '🔗 Google Drive連携準備'}
             </button>
 
             <button
