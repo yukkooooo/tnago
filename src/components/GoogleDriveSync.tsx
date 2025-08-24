@@ -81,7 +81,7 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
 
       // CSVデータを作成
       const csvContent = [
-        'Term,Meaning,Subject,Category,Difficulty,Tags,Learned',
+        'term,meaning,subject,category,difficulty,tags,isLearned',
         ...words.map(word =>
           `${word.term},${word.meaning},${word.subject},${word.category || ''},${word.difficulty || ''},${word.tags?.join(';') || ''},${word.isLearned ? 'true' : 'false'}`
         )
@@ -166,23 +166,34 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
       for (let i = 1; i < lines.length; i++) {
         if (lines[i].trim()) {
           const values = lines[i].split(',');
+
+          // 空の行やヘッダー行をスキップ
+          if (values.length < 2 || !values[0].trim() || !values[1].trim()) {
+            continue;
+          }
+
           const word: Word = {
             id: `word-${Date.now() + i}`,
-            term: values[0] || '',
-            meaning: values[1] || '',
-            subject: (values[2] as any) || 'english',
-            category: values[3] || undefined,
-            difficulty: (values[4] as 'easy' | 'medium' | 'hard') || undefined,
-            tags: values[5] ? values[5].split(';') : undefined,
-            isLearned: values[6] === 'true',
+            term: values[0].trim() || '',
+            meaning: values[1].trim() || '',
+            subject: (values[2]?.trim() as any) || 'english',
+            category: values[3]?.trim() || undefined,
+            difficulty: (values[4]?.trim() as 'easy' | 'medium' | 'hard') || undefined,
+            tags: values[5]?.trim() ? values[5].trim().split(';') : undefined,
+            isLearned: values[6]?.trim() === 'true',
             createdAt: new Date()
           };
           newWords.push(word);
         }
       }
 
-      onWordsUpdate(newWords);
-      alert('Google Driveから読み込みました！');
+      // 既存データとマージ（重複を避ける）
+      if (newWords.length > 0) {
+        onWordsUpdate(newWords);
+        alert(`Google Driveから ${newWords.length} 件の単語を読み込みました！`);
+      } else {
+        alert('読み込める単語データが見つかりませんでした。');
+      }
     } catch (error) {
       console.error('ダウンロードエラー:', error);
       alert('ダウンロードに失敗しました');
