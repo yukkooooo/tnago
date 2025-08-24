@@ -17,10 +17,10 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
   const initializeGoogleDrive = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       // Google Drive APIの認証と初期化
       const gapi = await import('gapi-script').then(pkg => pkg.gapi);
-      
+
       await gapi.load('client:auth2', async () => {
         await gapi.client.init({
           apiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
@@ -60,12 +60,12 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
   const uploadToDrive = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       // CSVデータを作成
       const csvContent = [
         'Term,Meaning,Subject,Category,Difficulty,Tags,Learned',
-        ...words.map(word => 
-          `${word.term},${word.meaning},${word.subject},${word.category || ''},${word.difficulty || ''},${word.tags?.join(';') || ''},${word.learned ? 'true' : 'false'}`
+        ...words.map(word =>
+          `${word.term},${word.meaning},${word.subject},${word.category || ''},${word.difficulty || ''},${word.tags?.join(';') || ''},${word.isLearned ? 'true' : 'false'}`
         )
       ].join('\n');
 
@@ -73,7 +73,7 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
       const file = new File([blob], fileName, { type: 'text/csv' });
 
       const gapi = await import('gapi-script').then(pkg => pkg.gapi);
-      
+
       // 既存ファイルを検索
       const response = await gapi.client.drive.files.list({
         q: `name='${fileName}' and trashed=false`,
@@ -117,9 +117,9 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
   const downloadFromDrive = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       const gapi = await import('gapi-script').then(pkg => pkg.gapi);
-      
+
       // ファイルを検索
       const response = await gapi.client.drive.files.list({
         q: `name='${fileName}' and trashed=false`,
@@ -132,7 +132,7 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
       }
 
       const fileId = response.result.files[0].id;
-      
+
       // ファイルの内容を取得
       const fileResponse = await gapi.client.drive.files.get({
         fileId: fileId!,
@@ -143,21 +143,21 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
       const csvText = fileResponse.body as string;
       const lines = csvText.split('\n');
       const headers = lines[0].split(',');
-      
+
       const newWords: Word[] = [];
       for (let i = 1; i < lines.length; i++) {
         if (lines[i].trim()) {
           const values = lines[i].split(',');
           const word: Word = {
-            id: Date.now() + i,
+            id: `word-${Date.now() + i}`,
             term: values[0] || '',
             meaning: values[1] || '',
             subject: (values[2] as any) || 'english',
             category: values[3] || undefined,
-            difficulty: values[4] || undefined,
+            difficulty: (values[4] as 'easy' | 'medium' | 'hard') || undefined,
             tags: values[5] ? values[5].split(';') : undefined,
-            learned: values[6] === 'true',
-            createdAt: new Date().toISOString()
+            isLearned: values[6] === 'true',
+            createdAt: new Date()
           };
           newWords.push(word);
         }
@@ -190,7 +190,7 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
       <h3 className="text-lg font-semibold text-gray-800 mb-4">
         🔄 Google Drive同期
       </h3>
-      
+
       <div className="space-y-4">
         {/* ファイル名設定 */}
         <div>
@@ -216,7 +216,7 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
             >
               {isLoading ? '初期化中...' : 'Google Drive初期化'}
             </button>
-            
+
             <button
               onClick={signIn}
               disabled={isLoading}
@@ -230,7 +230,7 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
             <div className="text-green-600 text-sm font-medium">
               ✅ Google Driveに接続済み
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <button
                 onClick={uploadToDrive}
@@ -239,7 +239,7 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
               >
                 {isLoading ? 'アップロード中...' : '📤 Driveに保存'}
               </button>
-              
+
               <button
                 onClick={downloadFromDrive}
                 disabled={isLoading}
@@ -248,7 +248,7 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
                 {isLoading ? 'ダウンロード中...' : '📥 Driveから読み込み'}
               </button>
             </div>
-            
+
             <button
               onClick={signOut}
               className="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
