@@ -93,6 +93,47 @@ npm start
 - CSVエクスポートでデータをバックアップ
 - 学習進捗も保持される
 
+## Google Drive同期機能
+
+PCとスマホで学習データを同期できます：
+
+### セットアップ手順
+
+1. **Google Cloud Consoleでプロジェクト作成**
+   - [Google Cloud Console](https://console.cloud.google.com/) にアクセス
+   - 新しいプロジェクトを作成
+
+2. **Google Drive APIを有効化**
+   - 「APIとサービス」→「ライブラリ」
+   - 「Google Drive API」を検索して有効化
+
+3. **認証情報を作成**
+   - 「認証情報」→「認証情報を作成」→「OAuth 2.0 クライアントID」
+   - アプリケーションの種類: 「ウェブアプリケーション」
+   - 承認済みのリダイレクトURI: `http://localhost:3000`
+
+4. **環境変数を設定**
+   - プロジェクトルートに `.env.local` ファイルを作成
+   ```bash
+   NEXT_PUBLIC_GOOGLE_API_KEY=your_api_key_here
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_client_id_here
+   ```
+
+### 使用方法
+
+1. **Google Drive初期化**: 「Google Drive初期化」ボタンをクリック
+2. **ログイン**: Googleアカウントでログイン
+3. **データ同期**: 
+   - 「📤 Driveに保存」: 現在のデータをGoogle Driveにアップロード
+   - 「📥 Driveから読み込み」: Google Driveからデータをダウンロード
+
+### メリット
+
+- ✅ **PC・スマホ同期**: 同じGoogleアカウントでデータ共有
+- ✅ **自動バックアップ**: 学習進捗も含めて保存
+- ✅ **オフライン対応**: ローカルデータも維持
+- ✅ **無料利用**: Google Driveの無料容量で利用可能
+
 ## PWA化について
 
 このアプリはPWA（Progressive Web App）として動作します：

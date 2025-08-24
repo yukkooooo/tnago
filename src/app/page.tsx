@@ -8,6 +8,7 @@ import WordList from '@/components/WordList';
 import CSVImporter from '@/components/CSVImporter';
 import QuizMode from '@/components/QuizMode';
 import SearchBar from '@/components/SearchBar';
+import GoogleDriveSync from '@/components/GoogleDriveSync';
 
 type Mode = 'list' | 'quiz';
 
@@ -119,6 +120,9 @@ export default function Home() {
 
       {/* CSVインポーター */}
       <CSVImporter onImport={handleImportWords} currentWords={words} />
+
+      {/* Google Drive同期 */}
+      <GoogleDriveSync words={words} onWordsUpdate={handleImportWords} />
 
       {/* 検索・フィルターバー */}
       <div className="mb-6">
