@@ -46,11 +46,29 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
     try {
       setIsLoading(true);
       const gapi = await import('gapi-script').then(pkg => pkg.gapi);
+      
+      // Google APIが初期化されているかチェック
+      if (!gapi.auth2) {
+        await gapi.load('client:auth2', async () => {
+          await gapi.client.init({
+            apiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
+            clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+            scope: 'https://www.googleapis.com/auth/drive.file'
+          });
+        });
+      }
+      
       const authInstance = gapi.auth2.getAuthInstance();
-      await authInstance.signIn();
-      setIsConnected(true);
+      if (authInstance) {
+        await authInstance.signIn();
+        setIsConnected(true);
+      } else {
+        throw new Error('Google認証が初期化されていません');
+      }
     } catch (error) {
       console.error('ログインエラー:', error);
+      alert('Googleログインに失敗しました。初期化ボタンを先に押してください。');
     } finally {
       setIsLoading(false);
     }
@@ -178,8 +196,10 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
     try {
       const gapi = await import('gapi-script').then(pkg => pkg.gapi);
       const authInstance = gapi.auth2.getAuthInstance();
-      await authInstance.signOut();
-      setIsConnected(false);
+      if (authInstance) {
+        await authInstance.signOut();
+        setIsConnected(false);
+      }
     } catch (error) {
       console.error('ログアウトエラー:', error);
     }
