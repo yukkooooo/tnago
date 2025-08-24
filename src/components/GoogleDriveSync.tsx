@@ -66,8 +66,8 @@ export default function GoogleDriveSync({ words, onWordsUpdate }: GoogleDriveSyn
         'Term,Meaning,Subject,Category,Difficulty,Tags,Learned',
         ...words.map(word => 
           `${word.term},${word.meaning},${word.subject},${word.category || ''},${word.difficulty || ''},${word.tags?.join(';') || ''},${word.learned ? 'true' : 'false'}`
-        ).join('\n')
-      ];
+        )
+      ].join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv' });
       const file = new File([blob], fileName, { type: 'text/csv' });
